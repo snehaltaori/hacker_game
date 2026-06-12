@@ -1,21 +1,33 @@
-import { useState } from "react";
+
 import "./Terminal.css";
-import files from "../../data/files";
 import levels from "../../data/levels";
-import { useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function Terminal() {
     const [input, setInput] = useState("");
     const [currentLevel, setCurrentLevel] = useState(0);
     const level = levels[currentLevel];
+
     const [history, setHistory] = useState([]);
     const [historyIndex, setHistoryIndex] = useState(-1);
 
     const [logs, setLogs] = useState([
-        "Initializing system...",
-        "Connected.",
+        "BOOTING TERMINAL...",
+        "Loading modules...",
+        "Connecting to target...",
+        "Connection established.",
         'Type "help" to begin.',
     ]);
+
+    const inputRef = useRef(null);
+
+    useEffect(() => {
+        inputRef.current?.focus();
+    }, []);
+    useEffect(() => {
+        inputRef.current?.focus();
+    }, [logs]);
+
 
     const outputRef = useRef(null);
     useEffect(() => {
@@ -27,8 +39,10 @@ export default function Terminal() {
     const addLogs = (newLogs) => {
         setLogs((prev) => [...prev, ...newLogs]);
     };
+    const wait = (ms) =>
+        new Promise((resolve) => setTimeout(resolve, ms));
 
-    const executeCommand = () => {
+    const executeCommand = async () => {
         const command = input.trim().toLowerCase();
         const fileNames = Object.keys(level.files);
 
@@ -54,6 +68,24 @@ export default function Terminal() {
             }
 
             if (level.files[filename]) {
+
+                addLogs([
+                    `Opening ${filename}...`
+                ]);
+
+                await wait(500);
+
+                addLogs([
+                    "Reading file..."
+                ]);
+
+                await wait(500);
+
+                addLogs([
+                    "Access granted."
+                ]);
+
+                await wait(500);
 
                 addLogs([
                     `----- ${filename} -----`,
@@ -98,7 +130,10 @@ export default function Terminal() {
                         setCurrentLevel(prev => prev + 1);
 
                         setLogs([
-                            `Loading Level ${currentLevel + 2}...`
+                            "=================================",
+                            `LEVEL ${currentLevel + 2} LOADED`,
+                            levels[currentLevel + 1].title,
+                            "=================================",
                         ]);
 
                     } else {
@@ -129,10 +164,12 @@ export default function Terminal() {
                     "------------------",
                     "help  - Show commands",
                     "scan  - Scan system",
+                    "ls",
                     "open  - Open file",
                     "login - Login with password",
                     "hint  - Get hint",
                     "clear - Clear terminal",
+                 
                 ]);
                 break;
 
@@ -144,7 +181,14 @@ export default function Terminal() {
                     ...fileNames,
                 ]);
                 break;
-
+            case "ls":
+                addLogs([
+                    "",
+                    "FILES FOUND",
+                    "-----------",
+                    ...fileNames,
+                ]);
+                break;
             case "hint":
                 addLogs([
                     level.hint
@@ -167,7 +211,7 @@ export default function Terminal() {
     };
 
     return (
-        <div className="terminal">
+        <div className="terminal" onClick={() => inputRef.current?.focus()}>
             <div className="terminal-header">
                 HACKER TERMINAL v1.0
                 <br />
@@ -185,6 +229,7 @@ export default function Terminal() {
                 <span className="cursor">█</span>
                 <input
                     type="text"
+                    ref={inputRef}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => {
