@@ -8,6 +8,9 @@ export default function Terminal() {
     const [input, setInput] = useState("");
     const [currentLevel, setCurrentLevel] = useState(0);
     const level = levels[currentLevel];
+    const [history, setHistory] = useState([]);
+    const [historyIndex, setHistoryIndex] = useState(-1);
+
     const [logs, setLogs] = useState([
         "Initializing system...",
         "Connected.",
@@ -30,6 +33,9 @@ export default function Terminal() {
         const fileNames = Object.keys(level.files);
 
         if (!command) return;
+
+        setHistory((prev) => [...prev, command]);
+        setHistoryIndex(-1);
 
         setLogs((prev) => [...prev, `> ${command}`]);
 
@@ -182,8 +188,42 @@ export default function Terminal() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => {
+
                         if (e.key === "Enter") {
                             executeCommand();
+                        }
+
+                        if (e.key === "ArrowUp") {
+
+                            if (history.length === 0) return;
+
+                            const newIndex =
+                                historyIndex === -1
+                                    ? history.length - 1
+                                    : Math.max(0, historyIndex - 1);
+
+                            setHistoryIndex(newIndex);
+                            setInput(history[newIndex]);
+                        }
+
+                        if (e.key === "ArrowDown") {
+
+                            if (history.length === 0) return;
+
+                            if (historyIndex === -1) return;
+
+                            const newIndex = historyIndex + 1;
+
+                            if (newIndex >= history.length) {
+
+                                setHistoryIndex(-1);
+                                setInput("");
+
+                            } else {
+
+                                setHistoryIndex(newIndex);
+                                setInput(history[newIndex]);
+                            }
                         }
                     }}
                     autoFocus
